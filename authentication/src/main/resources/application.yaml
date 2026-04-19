@@ -8,7 +8,15 @@ spring:
 jwt:
   secret: mdGhpcyBpcyBhIHZlcnkgc2VjdXJlIHNlY3JldCBrZXkgZm9yIGp3dCBhdXRoZW50aWNhdGlvbg==
   expiration: 86400000
+#Use this if you are using RestTemplate, commented it as we are already using FeignClient with Eureka
+#ie., @FeignClient(name = "user")
+#services:
+#  user:
+#    url: http://localhost:8081
 
-services:
-  user:
-    url: http://localhost:8081
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

@@ -11,25 +11,25 @@ spring:
         webmvc :
           routes:
             - id : user-get-all-route
-              uri : http://localhost:8081
+              uri : lb://user
               predicates :
                 - Path=/users/getAllUsers
                 - Method=GET
 
             - id : user-get-by-id-route
-              uri : http://localhost:8081
+              uri : lb://user
               predicates :
                 - Path=/users/getUserById/**
                 - Method=GET
 
             - id : user-make-admin-route
-              uri : http://localhost:8081
+              uri : lb://user
               predicates :
                 - Path=/users/*/make-admin
                 - Method=PUT
 
             - id : authentication-service
-              uri : http://localhost:8082
+              uri : lb://authentication
               predicates :
                 - Path=/auth/**
                 - Method=POST
@@ -38,25 +38,25 @@ spring:
                 - AddRequestHeader=X-Gateway-Source, gateway
 
             - id : product-service-find-product
-              uri : http://localhost:8083
+              uri : lb://product
               predicates :
                 - Path=/products/**
                 - Method=GET
 
             - id: product-service-add-product
-              uri: http://localhost:8083
+              uri: lb://product
               predicates:
                 - Path=/products/**
                 - Method=POST
 
             - id: product-service-update-product
-              uri: http://localhost:8083
+              uri: lb://product
               predicates:
                 - Path=/products/**
                 - Method=PUT
 
             - id: product-service-delete-product
-              uri: http://localhost:8083
+              uri: lb://product
               predicates:
                 - Path=/products/**
                 - Method=DELETE
@@ -69,3 +69,11 @@ logging:
 
 jwt:
   secret: mdGhpcyBpcyBhIHZlcnkgc2VjdXJlIHNlY3JldCBrZXkgZm9yIGp3dCBhdXRoZW50aWNhdGlvbg==
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+

@@ -25,3 +25,10 @@ app:
     username: admin
     email: admin@example.com
     password: AdminPassword123
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
