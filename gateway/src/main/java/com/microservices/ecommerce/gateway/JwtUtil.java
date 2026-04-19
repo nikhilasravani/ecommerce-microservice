@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -36,6 +37,16 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload()
                 .get("role", String.class);
+    }
+
+    public UUID  extractUserIdFromToken(String token){
+        String userId =  Jwts.parser()
+                .verifyWith((SecretKey)key())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("userId", String.class);
+        return UUID.fromString(userId);
     }
 
     public boolean validateToken(String token){

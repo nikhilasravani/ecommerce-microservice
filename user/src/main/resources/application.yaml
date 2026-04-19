@@ -26,6 +26,10 @@ app:
     email: admin@example.com
     password: AdminPassword123
 
+services:
+  authentication:
+    internal-token: change-me-authentication-user-token
+
 eureka:
   client:
     service-url:

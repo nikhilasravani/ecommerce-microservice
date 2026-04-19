@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -21,10 +22,11 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    public String generateToken(String username, Role role) {
+    public String generateToken(String username, Role role, UUID userId) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role.name())
+                .claim("userId", userId.toString())
                 .issuedAt(new Date())
                 .expiration(new Date((new Date().getTime()+jwtExpiration)))
                 .signWith(key())
@@ -55,6 +57,10 @@ public class JwtUtil {
         }
     }
 
+    private UUID extractUserIdFromToken(String token){
+        String userId =  extractClaimsFromToken(token).get("userId", String.class);
+        return UUID.fromString(userId);
+    }
     private Claims extractClaimsFromToken(String token){
         return Jwts.parser()
                 .verifyWith((SecretKey)key())

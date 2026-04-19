@@ -14,6 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -45,6 +47,14 @@ public class UserServiceImplementationTest {
     //Arrange
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        UserTestConstants.EMAIL,
+                        null,
+                        List.of()
+                )
+        );
+
         userRequestDTO = UserRequestDTO.builder()
                 .username(UserTestConstants.USERNAME)
                 .email(UserTestConstants.EMAIL)
@@ -136,6 +146,11 @@ public class UserServiceImplementationTest {
                 exception.getMessage());
         verify(userRepository,times(1)).findById(UserTestConstants.USER_ID);
         verifyNoMoreInteractions(userRepository,modelMapper,passwordEncoder);
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test

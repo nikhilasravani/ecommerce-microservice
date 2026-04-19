@@ -4,8 +4,10 @@ import com.microservices.ecommerce.user.service.UserService;
 import com.microservices.ecommerce.user.userDTO.UserAuthResponseDTO;
 import com.microservices.ecommerce.user.userDTO.UserRequestDTO;
 import com.microservices.ecommerce.user.userDTO.UserResponseDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +18,12 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final String internalToken;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService,
+                          @Value("${services.authentication.internal-token}") String internalToken) {
         this.userService = userService;
+        this.internalToken = internalToken;
     }
 
     @PostMapping
@@ -28,7 +33,11 @@ public class UserController {
     }
 
     @GetMapping("/auth")
-    public ResponseEntity<UserAuthResponseDTO> getUserAuthByEmail(@RequestParam String email) {
+    public ResponseEntity<UserAuthResponseDTO> getUserAuthByEmail(@RequestParam String email,
+                                                                  @RequestHeader("X-Internal-Token") String requestToken) {
+        if (!internalToken.equals(requestToken)) {
+            throw new AccessDeniedException("Invalid internal authentication token.");
+        }
         UserAuthResponseDTO userAuth = userService.getUserAuthByEmail(email);
         return new ResponseEntity<>(userAuth, HttpStatus.OK);
     }
