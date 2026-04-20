@@ -1,7 +1,6 @@
-package com.microservices.ecommerce.product.dto;
+package com.microservices.ecommerce.cart.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,9 +8,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class ProductResponseDTO {
 
     private UUID productId;
@@ -19,8 +17,6 @@ public class ProductResponseDTO {
     private String productDescription;
     private Double productPrice;
     private Integer productStock;
-
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

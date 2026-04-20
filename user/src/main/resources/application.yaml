@@ -29,6 +29,8 @@ app:
 services:
   authentication:
     internal-token: change-me-authentication-user-token
+  cart:
+    internal-token: change-me-cart-user-token
 
 eureka:
   client:

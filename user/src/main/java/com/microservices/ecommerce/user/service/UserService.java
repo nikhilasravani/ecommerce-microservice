@@ -14,6 +14,8 @@ public interface UserService {
 
     UserResponseDTO getUserById(UUID userId);
 
+    UserResponseDTO getUserByIdInternal(UUID userId);
+
     UserAuthResponseDTO getUserAuthByEmail(String email);
 
     UserResponseDTO makeUserAdmin(UUID userId);

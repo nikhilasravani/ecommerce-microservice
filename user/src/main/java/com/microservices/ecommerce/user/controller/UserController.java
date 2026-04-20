@@ -18,12 +18,15 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-    private final String internalToken;
+    private final String authInternalToken;
+    private final String cartInternalToken;
 
     public UserController(UserService userService,
-                          @Value("${services.authentication.internal-token}") String internalToken) {
+                          @Value("${services.authentication.internal-token}") String authInternalToken,
+                          @Value("${services.cart.internal-token}") String cartInternalToken) {
         this.userService = userService;
-        this.internalToken = internalToken;
+        this.authInternalToken = authInternalToken;
+        this.cartInternalToken = cartInternalToken;
     }
 
     @PostMapping
@@ -35,7 +38,7 @@ public class UserController {
     @GetMapping("/auth")
     public ResponseEntity<UserAuthResponseDTO> getUserAuthByEmail(@RequestParam String email,
                                                                   @RequestHeader("X-Internal-Token") String requestToken) {
-        if (!internalToken.equals(requestToken)) {
+        if (!authInternalToken.equals(requestToken)) {
             throw new AccessDeniedException("Invalid internal authentication token.");
         }
         UserAuthResponseDTO userAuth = userService.getUserAuthByEmail(email);
@@ -49,9 +52,19 @@ public class UserController {
     }
 
     @GetMapping("/getUserById/{userId}")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID userId){
-        UserResponseDTO userById = userService.getUserById(userId);
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID userId,
+                                                       @RequestHeader(value = "X-Internal-Token", required = false)
+                                                       String requestToken){
+        UserResponseDTO userById = cartInternalToken.equals(requestToken)
+                ? userService.getUserByIdInternal(userId)
+                : userService.getUserById(userId);
         return new ResponseEntity<>(userById,HttpStatus.OK);
+    }
+
+    @GetMapping("/internal/{userId}")
+    public ResponseEntity<UserResponseDTO> getUserByIdInternal(@PathVariable UUID userId) {
+        UserResponseDTO userById = userService.getUserByIdInternal(userId);
+        return new ResponseEntity<>(userById, HttpStatus.OK);
     }
 
     @PutMapping("/{userId}/make-admin")

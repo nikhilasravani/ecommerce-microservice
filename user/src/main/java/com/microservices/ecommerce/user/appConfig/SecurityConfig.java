@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users", "/users/auth").permitAll()
+                        .requestMatchers("/users", "/users/auth", "/users/getUserById/**", "/users/internal/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/getAllUsers").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/users/*/make-admin").hasRole("ADMIN")
                         .anyRequest().authenticated())
