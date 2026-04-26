@@ -4,6 +4,8 @@ import com.microservices.ecommerce.cart.dto.CartItemRequestDTO;
 import com.microservices.ecommerce.cart.dto.CartResponseDTO;
 import com.microservices.ecommerce.cart.dto.ProductResponseDTO;
 import com.microservices.ecommerce.cart.dto.UserResponseDTO;
+import com.microservices.ecommerce.cart.exception.CartItemNotFoundException;
+import com.microservices.ecommerce.cart.exception.CartNotFoundException;
 import com.microservices.ecommerce.cart.exception.UserNotFoundException;
 import com.microservices.ecommerce.cart.externalClients.ProductFeignClient;
 import com.microservices.ecommerce.cart.externalClients.UserFeignClient;
@@ -45,7 +47,7 @@ public class CartServiceImplementation implements  CartService {
     }
 
     @Override
-    public CartResponseDTO getCartByUserId(UUID userId) throws UserNotFoundException {
+    public CartResponseDTO getCartByUserId(UUID userId) {
         //Step 1 : Validate user exists via FeignClient
         UserResponseDTO user = userFeignClient.getUserById(userId, userInternalToken);
         if(user == null){
@@ -64,7 +66,7 @@ public class CartServiceImplementation implements  CartService {
     }
 
     @Override
-    public CartResponseDTO addItemToCart(UUID userId, CartItemRequestDTO request) throws UserNotFoundException {
+    public CartResponseDTO addItemToCart(UUID userId, CartItemRequestDTO request) {
         //Step 1 : Validate user exists via FeignClient
         UserResponseDTO user = userFeignClient.getUserById(userId, userInternalToken);
         if(user == null){
@@ -110,12 +112,12 @@ public class CartServiceImplementation implements  CartService {
     @Override
     public CartResponseDTO updateQuantityOfCartItem(UUID userId, UUID cartItemId, Integer quantity) {
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(()-> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new CartNotFoundException("Cart not found"));
         CartItem item = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new RuntimeException("Cart item not found!"));
+                .orElseThrow(() -> new CartItemNotFoundException("Cart item not found"));
 
         if (!item.getCart().getId().equals(cart.getId())) {
-            throw new RuntimeException("Cart item does not belong to the user's cart");
+            throw new IllegalArgumentException("Cart item does not belong to the user's cart");
         }
 
         if (quantity == null || quantity <= 0) {
@@ -131,12 +133,12 @@ public class CartServiceImplementation implements  CartService {
     @Override
     public CartResponseDTO removeItemFromCart(UUID userId, UUID cartItemId) {
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new CartNotFoundException("Cart not found"));
         CartItem item = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new RuntimeException("Cart item not found!"));
+                .orElseThrow(() -> new CartItemNotFoundException("Cart item not found"));
 
         if (!item.getCart().getId().equals(cart.getId())) {
-            throw new RuntimeException("Cart item does not belong to the user's cart");
+            throw new IllegalArgumentException("Cart item does not belong to the user's cart");
         }
 
         cart.getItems().remove(item);
@@ -145,14 +147,14 @@ public class CartServiceImplementation implements  CartService {
     }
 
     @Override
-    public CartResponseDTO clearCart(UUID userId) throws UserNotFoundException {
+    public CartResponseDTO clearCart(UUID userId) {
         //Step 1 : Validate user exists via FeignClient
         UserResponseDTO user = userFeignClient.getUserById(userId, userInternalToken);
         if(user == null){
             throw new UserNotFoundException("User not found");
         }
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new CartNotFoundException("Cart not found"));
 
         cart.getItems().clear();
         cartRepository.save(cart);

@@ -27,3 +27,5 @@ eureka:
 services:
   cart:
     internal-token: change-me-cart-user-token
+jwt:
+  secret: mdGhpcyBpcyBhIHZlcnkgc2VjdXJlIHNlY3JldCBrZXkgZm9yIGp3dCBhdXRoZW50aWNhdGlvbg==
