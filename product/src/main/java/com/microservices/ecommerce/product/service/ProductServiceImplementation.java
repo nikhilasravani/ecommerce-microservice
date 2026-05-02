@@ -7,10 +7,12 @@ import com.microservices.ecommerce.product.exception.ProductAlreadyExistsExcepti
 import com.microservices.ecommerce.product.exception.ProductNotFoundException;
 import com.microservices.ecommerce.product.model.Product;
 import com.microservices.ecommerce.product.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ProductServiceImplementation implements ProductService {
@@ -44,14 +46,14 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
-    public ProductResponseDTO findProductById(Long productId) {
+    public ProductResponseDTO findProductById(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with ID : " + productId));
         return modelMapper.map(product, ProductResponseDTO.class);
     }
 
     @Override
-    public ProductResponseDTO updateProduct(Long productId, ProductRequestDTO productRequestDTO) {
+    public ProductResponseDTO updateProduct(UUID productId, ProductRequestDTO productRequestDTO) {
         validateProductRequest(productRequestDTO);
 
         Product existingProduct = productRepository.findById(productId)
@@ -72,7 +74,26 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
-    public void deleteProduct(Long productId) {
+    @Transactional
+    public ProductResponseDTO reduceStock(UUID productId, Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidInputException("Quantity must be greater than zero");
+        }
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with ID : " + productId));
+
+        if (product.getProductStock() < quantity) {
+            throw new InvalidInputException("Insufficient stock for product ID : " + productId);
+        }
+
+        product.setProductStock(product.getProductStock() - quantity);
+        Product updatedProduct = productRepository.save(product);
+        return modelMapper.map(updatedProduct, ProductResponseDTO.class);
+    }
+
+    @Override
+    public void deleteProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with ID : " + productId));
         productRepository.delete(product);

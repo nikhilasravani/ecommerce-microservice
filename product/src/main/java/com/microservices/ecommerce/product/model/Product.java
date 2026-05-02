@@ -12,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -21,8 +22,8 @@ import java.time.LocalDateTime;
 public class Product {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long productId;
+    @GeneratedValue(strategy= GenerationType.UUID)
+    private UUID productId;
     private String productName;
     private String productDescription;
     private Double productPrice;

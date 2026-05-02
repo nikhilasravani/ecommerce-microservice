@@ -18,6 +18,7 @@ import org.modelmapper.ModelMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,9 +49,11 @@ class ProductServiceImplementationTest {
     private Product product;
     private Product savedProduct;
     private ProductResponseDTO productResponseDTO;
+    private UUID productId;
 
     @BeforeEach
     void setUp() {
+        productId = UUID.randomUUID();
         productRequestDTO = ProductRequestDTO.builder()
                 .productName("Wireless Mouse")
                 .productDescription("Ergonomic wireless mouse")
@@ -66,7 +69,7 @@ class ProductServiceImplementationTest {
                 .build();
 
         savedProduct = Product.builder()
-                .productId(1L)
+                .productId(productId)
                 .productName("Wireless Mouse")
                 .productDescription("Ergonomic wireless mouse")
                 .productPrice(799.0)
@@ -76,7 +79,7 @@ class ProductServiceImplementationTest {
                 .build();
 
         productResponseDTO = ProductResponseDTO.builder()
-                .productId(1L)
+                .productId(productId)
                 .productName("Wireless Mouse")
                 .productDescription("Ergonomic wireless mouse")
                 .productPrice(799.0)
@@ -96,7 +99,7 @@ class ProductServiceImplementationTest {
         ProductResponseDTO result = productServiceImplementation.addProduct(productRequestDTO);
 
         assertNotNull(result);
-        assertEquals(1L, result.getProductId());
+        assertEquals(productId, result.getProductId());
         assertEquals("Wireless Mouse", result.getProductName());
         verify(productRepository, times(1)).existsByProductName(productRequestDTO.getProductName());
         verify(modelMapper, times(1)).map(productRequestDTO, Product.class);
@@ -158,7 +161,7 @@ class ProductServiceImplementationTest {
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(1L, result.getFirst().getProductId());
+        assertEquals(productId, result.getFirst().getProductId());
         verify(productRepository, times(1)).findAll();
         verify(modelMapper, times(1)).map(savedProduct, ProductResponseDTO.class);
         verifyNoMoreInteractions(productRepository, modelMapper);
@@ -166,43 +169,43 @@ class ProductServiceImplementationTest {
 
     @Test
     void findProductByIdSuccessTest() {
-        when(productRepository.findById(1L)).thenReturn(Optional.of(savedProduct));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
         when(modelMapper.map(savedProduct, ProductResponseDTO.class)).thenReturn(productResponseDTO);
 
-        ProductResponseDTO result = productServiceImplementation.findProductById(1L);
+        ProductResponseDTO result = productServiceImplementation.findProductById(productId);
 
         assertNotNull(result);
-        assertEquals(1L, result.getProductId());
-        verify(productRepository, times(1)).findById(1L);
+        assertEquals(productId, result.getProductId());
+        verify(productRepository, times(1)).findById(productId);
         verify(modelMapper, times(1)).map(savedProduct, ProductResponseDTO.class);
         verifyNoMoreInteractions(productRepository, modelMapper);
     }
 
     @Test
     void findProductByIdNotFoundTest() {
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
         ProductNotFoundException exception = assertThrows(
                 ProductNotFoundException.class,
-                () -> productServiceImplementation.findProductById(1L)
+                () -> productServiceImplementation.findProductById(productId)
         );
 
-        assertEquals("Product not found with ID : 1", exception.getMessage());
-        verify(productRepository, times(1)).findById(1L);
+        assertEquals("Product not found with ID : " + productId, exception.getMessage());
+        verify(productRepository, times(1)).findById(productId);
         verifyNoMoreInteractions(productRepository, modelMapper);
     }
 
     @Test
     void updateProductSuccessTest() {
-        when(productRepository.findById(1L)).thenReturn(Optional.of(savedProduct));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
         when(productRepository.save(savedProduct)).thenReturn(savedProduct);
         when(modelMapper.map(savedProduct, ProductResponseDTO.class)).thenReturn(productResponseDTO);
 
-        ProductResponseDTO result = productServiceImplementation.updateProduct(1L, productRequestDTO);
+        ProductResponseDTO result = productServiceImplementation.updateProduct(productId, productRequestDTO);
 
         assertNotNull(result);
         assertEquals("Wireless Mouse", result.getProductName());
-        verify(productRepository, times(1)).findById(1L);
+        verify(productRepository, times(1)).findById(productId);
         verify(productRepository, never()).existsByProductName(any());
         verify(productRepository, times(1)).save(savedProduct);
         verify(modelMapper, times(1)).map(savedProduct, ProductResponseDTO.class);
@@ -212,23 +215,23 @@ class ProductServiceImplementationTest {
     @Test
     void updateProductDuplicateNameTest() {
         Product existingProduct = Product.builder()
-                .productId(1L)
+                .productId(productId)
                 .productName("Old Name")
                 .productDescription("Old description")
                 .productPrice(500.0)
                 .productStock(10)
                 .build();
 
-        when(productRepository.findById(1L)).thenReturn(Optional.of(existingProduct));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
         when(productRepository.existsByProductName(productRequestDTO.getProductName())).thenReturn(true);
 
         ProductAlreadyExistsException exception = assertThrows(
                 ProductAlreadyExistsException.class,
-                () -> productServiceImplementation.updateProduct(1L, productRequestDTO)
+                () -> productServiceImplementation.updateProduct(productId, productRequestDTO)
         );
 
         assertEquals("Product name already exists", exception.getMessage());
-        verify(productRepository, times(1)).findById(1L);
+        verify(productRepository, times(1)).findById(productId);
         verify(productRepository, times(1)).existsByProductName(productRequestDTO.getProductName());
         verify(productRepository, never()).save(any());
         verifyNoMoreInteractions(productRepository, modelMapper);
@@ -236,26 +239,26 @@ class ProductServiceImplementationTest {
 
     @Test
     void updateProductNotFoundTest() {
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
         ProductNotFoundException exception = assertThrows(
                 ProductNotFoundException.class,
-                () -> productServiceImplementation.updateProduct(1L, productRequestDTO)
+                () -> productServiceImplementation.updateProduct(productId, productRequestDTO)
         );
 
-        assertEquals("Product not found with ID : 1", exception.getMessage());
-        verify(productRepository, times(1)).findById(1L);
+        assertEquals("Product not found with ID : " + productId, exception.getMessage());
+        verify(productRepository, times(1)).findById(productId);
         verify(productRepository, never()).save(any());
         verifyNoMoreInteractions(productRepository, modelMapper);
     }
 
     @Test
     void deleteProductSuccessTest() {
-        when(productRepository.findById(1L)).thenReturn(Optional.of(savedProduct));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
 
-        assertDoesNotThrow(() -> productServiceImplementation.deleteProduct(1L));
+        assertDoesNotThrow(() -> productServiceImplementation.deleteProduct(productId));
 
-        verify(productRepository, times(1)).findById(1L);
+        verify(productRepository, times(1)).findById(productId);
         verify(productRepository, times(1)).delete(savedProduct);
         verifyNoMoreInteractions(productRepository, modelMapper);
     }
