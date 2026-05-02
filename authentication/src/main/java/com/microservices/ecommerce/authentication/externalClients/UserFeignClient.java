@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name= "user")
 public interface UserFeignClient {
 
-    @PostMapping("/users")
-    UserResponseDTO createUser(@RequestBody RegisterRequestDTO registerRequestDTO);
+    @PostMapping("/users/internal")
+    UserResponseDTO createUser(@RequestBody RegisterRequestDTO registerRequestDTO,
+                               @RequestHeader("X-Internal-Token") String internalToken);
 
     @GetMapping("/users/auth")
     UserAuthResponseDTO getUserAuthByEmail(@RequestParam("email") String email,

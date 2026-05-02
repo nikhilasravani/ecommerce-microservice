@@ -33,7 +33,7 @@ public class AuthUserServiceImplementation implements AuthUserService {
     public AuthResponseDTO registerUser(RegisterRequestDTO registerRequestDTO) {
         UserResponseDTO createdUser;
         try {
-            createdUser = userFeignClient.createUser(registerRequestDTO);
+            createdUser = userFeignClient.createUser(registerRequestDTO, internalToken);
         } catch (FeignException.Conflict ex) {
             throw new UserAlreadyExistsException("User already exists!");
         } catch (FeignException ex) {
