@@ -4,11 +4,14 @@ import com.microservices.ecommerce.cart.dto.CartItemRequestDTO;
 import com.microservices.ecommerce.cart.dto.CartResponseDTO;
 import com.microservices.ecommerce.cart.jwt.JwtAuthenticatedUser;
 import com.microservices.ecommerce.cart.service.CartService;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -18,6 +21,9 @@ public class CartController {
 
     private final CartService cartService;
 
+    @Value("${services.cart.internal-token}")
+    private String cartInternalToken;
+
     public CartController(CartService cartService) {
         this.cartService = cartService;
     }
@@ -26,6 +32,16 @@ public class CartController {
     public ResponseEntity<CartResponseDTO> getCart(@PathVariable UUID userId,
                                                    Authentication authentication) {
         validateUserAccess(userId, authentication);
+        CartResponseDTO response = cartService.getCartByUserId(userId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/internal/{userId}")
+    public ResponseEntity<CartResponseDTO> getCartByUserIdInternal(@PathVariable UUID userId,
+                                                                   @RequestHeader("X-Internal-Token")String internalToken) {
+        if(!internalToken.equals(cartInternalToken)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Invalid internal token");
+        }
         CartResponseDTO response = cartService.getCartByUserId(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -63,6 +79,16 @@ public class CartController {
     public ResponseEntity<CartResponseDTO> clearCart(@PathVariable UUID userId,
                                                      Authentication authentication) {
         validateUserAccess(userId, authentication);
+        CartResponseDTO response = cartService.clearCart(userId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/internal/{userId}")
+    public ResponseEntity<CartResponseDTO> clearCartInternal(@PathVariable UUID userId,
+                                                             @RequestHeader("X-Internal-Token")String internalToken) {
+        if(!internalToken.equals(cartInternalToken)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Invalid internal token");
+        }
         CartResponseDTO response = cartService.clearCart(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
