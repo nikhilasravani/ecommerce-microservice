@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:paymenttestdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      auto-startup: false
+    consumer:
+      group-id: payment-service-test
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.microservices.ecommerce.payment.dto.OrderPlacedEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+kafka:
+  topic:
+    order-placed: order-placed
+    payment-result: payment-result
+
+razorpay:
+  key-id: test-key
+  key-secret: test-secret
+
+eureka:
+  client:
+    enabled: false

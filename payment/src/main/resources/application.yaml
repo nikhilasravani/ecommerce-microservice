@@ -1,0 +1,41 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: payment
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/paymentdb
+    username: postgres
+    password: AdminPassword
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: payment-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.microservices.ecommerce.payment.dto.OrderPlacedEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+kafka:
+  topic:
+    order-placed: order-placed
+    payment-result: payment-result
+razorpay:
+  key-id: rzp_test_SlBG1ltDyco4We
+  key-secret: GtVvz9Kte4bGA2m7ybR88hL2
+
