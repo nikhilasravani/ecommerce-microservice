@@ -1,6 +1,7 @@
 package com.microservices.ecommerce.order.model;
 
 import com.microservices.ecommerce.order.enums.OrderStatus;
+import com.microservices.ecommerce.order.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -5,6 +5,7 @@ import com.microservices.ecommerce.order.dto.CartItemDTO;
 import com.microservices.ecommerce.order.dto.CartResponseDTO;
 import com.microservices.ecommerce.order.dto.OrderResponseDTO;
 import com.microservices.ecommerce.order.enums.OrderStatus;
+import com.microservices.ecommerce.order.events.OrderEventProducer;
 import com.microservices.ecommerce.order.externalClients.CartFeignClient;
 import com.microservices.ecommerce.order.externalClients.ProductFeignClient;
 import com.microservices.ecommerce.order.model.Order;
@@ -42,6 +43,9 @@ public class OrderApplicationTest {
 
     @Mock
     private ModelMapper modelMapper;
+
+    @Mock
+    private OrderEventProducer orderEventProducer;
 
     @InjectMocks
     private OrderServiceImplementation orderServiceImplementation;

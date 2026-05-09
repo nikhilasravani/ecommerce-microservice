@@ -1,9 +1,11 @@
 package com.microservices.ecommerce.order.service;
 
+import com.microservices.ecommerce.order.events.OrderEventProducer;
 import com.microservices.ecommerce.order.dto.CartResponseDTO;
 import com.microservices.ecommerce.order.dto.OrderResponseDTO;
 import com.microservices.ecommerce.order.dto.StockUpdateRequestDTO;
 import com.microservices.ecommerce.order.enums.OrderStatus;
+import com.microservices.ecommerce.order.dto.OrderPlacedEvent;
 import com.microservices.ecommerce.order.externalClients.CartFeignClient;
 import com.microservices.ecommerce.order.externalClients.ProductFeignClient;
 import com.microservices.ecommerce.order.model.Order;
@@ -26,19 +28,22 @@ public class OrderServiceImplementation implements OrderService {
     private final String productInternalToken;
     private final OrderRepository orderRepository;
     private final ModelMapper modelMapper;
+    private final OrderEventProducer orderEventProducer;
 
     public OrderServiceImplementation(CartFeignClient cartFeignClient,
                                       ProductFeignClient productFeignClient,
                                       @Value("${services.cart.internal-token}")String cartInternalToken,
                                       @Value("${services.product.internal-token}")String productInternalToken,
                                       OrderRepository orderRepository,
-                                      ModelMapper modelMapper) {
+                                      ModelMapper modelMapper,
+                                      OrderEventProducer orderEventProducer) {
         this.cartFeignClient = cartFeignClient;
         this.productFeignClient = productFeignClient;
         this.cartInternalToken = cartInternalToken;
         this.productInternalToken = productInternalToken;
         this.orderRepository = orderRepository;
         this.modelMapper = modelMapper;
+        this.orderEventProducer = orderEventProducer;
     }
 
     @Override
@@ -90,14 +95,23 @@ public class OrderServiceImplementation implements OrderService {
                 )
         );
 
-        //Step:6 Save to Repository
-        orderRepository.save(order);
+        //Step:7 Save to Repository
+        Order savedOrder = orderRepository.save(order);
 
-        //Step:7 clear cart
+        //Step:8 clear cart
         cartFeignClient.clearCart(userId, cartInternalToken);
 
-        //Step:8 Return response
-        return modelMapper.map(order, OrderResponseDTO.class);
+        //Step : 9 NEW: Publish event to Kafka
+        OrderPlacedEvent event = new OrderPlacedEvent(
+                savedOrder.getOrderId(),
+                savedOrder.getUserId(),
+                savedOrder.getTotalAmount()
+        );
+        orderEventProducer.publishOrderPlacedEvent(event);
+
+
+        //Step:10 Return response
+        return modelMapper.map(savedOrder, OrderResponseDTO.class);
     }
 
     @Override
