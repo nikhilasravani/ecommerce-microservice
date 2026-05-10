@@ -61,30 +61,6 @@ spring:
                 - Path=/products/**
                 - Method=DELETE
 
-            - id: cart-service-get-cart
-              uri: lb://cart
-              predicates:
-                - Path=/cart/**
-                - Method=GET
-
-            - id: cart-service-add-item
-              uri: lb://cart
-              predicates:
-                - Path=/cart/**
-                - Method=POST
-
-            - id: cart-service-update-item
-              uri: lb://cart
-              predicates:
-                - Path=/cart/**
-                - Method=PUT
-
-            - id: cart-service-delete-item
-              uri: lb://cart
-              predicates:
-                - Path=/cart/**
-                - Method=DELETE
-
 logging:
   level :
     root : info
@@ -100,3 +76,4 @@ eureka:
       defaultZone: http://localhost:8761/eureka
   instance:
     prefer-ip-address: true
+
