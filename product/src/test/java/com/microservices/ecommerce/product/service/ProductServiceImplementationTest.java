@@ -265,15 +265,15 @@ class ProductServiceImplementationTest {
 
     @Test
     void deleteProductNotFoundTest() {
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
         ProductNotFoundException exception = assertThrows(
                 ProductNotFoundException.class,
-                () -> productServiceImplementation.deleteProduct(1L)
+                () -> productServiceImplementation.deleteProduct(productId)
         );
 
-        assertEquals("Product not found with ID : 1", exception.getMessage());
-        verify(productRepository, times(1)).findById(1L);
+        assertEquals("Product not found with ID : " + productId, exception.getMessage());
+        verify(productRepository, times(1)).findById(productId);
         verify(productRepository, never()).delete(any());
         verifyNoMoreInteractions(productRepository, modelMapper);
     }

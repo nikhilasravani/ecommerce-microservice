@@ -73,6 +73,24 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
+    public ProductResponseDTO reduceStock(UUID productId, Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidInputException("Quantity must be greater than zero");
+        }
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with ID : " + productId));
+
+        if (product.getProductStock() < quantity) {
+            throw new InvalidInputException("Insufficient stock");
+        }
+
+        product.setProductStock(product.getProductStock() - quantity);
+        Product updatedProduct = productRepository.save(product);
+        return modelMapper.map(updatedProduct, ProductResponseDTO.class);
+    }
+
+    @Override
     public void deleteProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with ID : " + productId));
