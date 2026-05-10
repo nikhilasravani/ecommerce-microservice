@@ -29,7 +29,7 @@ public class UserController {
         this.cartInternalToken = cartInternalToken;
     }
 
-    @PostMapping
+    @PostMapping("/internal")
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO userRequestDTO){
         UserResponseDTO newUser = userService.createUser(userRequestDTO);
         return new ResponseEntity<>(newUser,HttpStatus.CREATED);
