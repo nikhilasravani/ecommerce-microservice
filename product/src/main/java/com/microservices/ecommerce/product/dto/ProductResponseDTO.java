@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ProductResponseDTO {
 
-    private Long productId;
+    private UUID productId;
     private String productName;
     private String productDescription;
     private Double productPrice;

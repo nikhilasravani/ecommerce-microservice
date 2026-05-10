@@ -81,6 +81,13 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    public UserResponseDTO getUserByIdInternal(UUID userId) {
+        User userStatus = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID : " + userId));
+        return modelMapper.map(userStatus, UserResponseDTO.class);
+    }
+
+    @Override
     public UserAuthResponseDTO getUserAuthByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email : " + email));

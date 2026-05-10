@@ -4,6 +4,7 @@ import com.microservices.ecommerce.product.dto.ProductRequestDTO;
 import com.microservices.ecommerce.product.dto.ProductResponseDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface ProductService {
 
@@ -11,9 +12,9 @@ public interface ProductService {
 
     List<ProductResponseDTO> findAllProducts();
 
-    ProductResponseDTO findProductById(Long productId);
+    ProductResponseDTO findProductById(UUID productId);
 
-    ProductResponseDTO updateProduct(Long productId, ProductRequestDTO productRequestDTO);
+    ProductResponseDTO updateProduct(UUID productId, ProductRequestDTO productRequestDTO);
 
-    void deleteProduct(Long productId);
+    void deleteProduct(UUID productId);
 }
