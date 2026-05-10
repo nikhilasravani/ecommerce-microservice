@@ -9,6 +9,7 @@ import com.microservices.ecommerce.product.model.Product;
 import com.microservices.ecommerce.product.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -73,6 +74,7 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponseDTO reduceStock(UUID productId, Integer quantity) {
         if (quantity == null || quantity <= 0) {
             throw new InvalidInputException("Quantity must be greater than zero");

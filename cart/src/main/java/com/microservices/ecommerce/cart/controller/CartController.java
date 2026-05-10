@@ -28,10 +28,9 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<CartResponseDTO> getCart(@PathVariable UUID userId,
-                                                   Authentication authentication) {
-        validateUserAccess(userId, authentication);
+    @GetMapping
+    public ResponseEntity<CartResponseDTO> getCart(Authentication authentication) {
+        UUID userId = currentUserId(authentication);
         CartResponseDTO response = cartService.getCartByUserId(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -46,39 +45,35 @@ public class CartController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PostMapping("/{userId}/items")
-    public ResponseEntity<CartResponseDTO> addItemToCart(@PathVariable UUID userId,
-                                                         @RequestBody CartItemRequestDTO request,
+    @PostMapping("/items")
+    public ResponseEntity<CartResponseDTO> addItemToCart(@RequestBody CartItemRequestDTO request,
                                                          Authentication authentication) {
-        validateUserAccess(userId, authentication);
+        UUID userId = currentUserId(authentication);
         CartResponseDTO response = cartService.addItemToCart(userId, request);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PutMapping("/{userId}/items/{cartItemId}")
-    public ResponseEntity<CartResponseDTO> updateQuantity(@PathVariable UUID userId,
-                                                          @PathVariable UUID cartItemId,
+    @PutMapping("/items/{cartItemId}")
+    public ResponseEntity<CartResponseDTO> updateQuantity(@PathVariable UUID cartItemId,
                                                           @RequestBody CartItemRequestDTO request,
                                                           Authentication authentication){
-        validateUserAccess(userId, authentication);
+        UUID userId = currentUserId(authentication);
         CartResponseDTO response = cartService.updateQuantityOfCartItem(userId,
                 cartItemId, request.getQuantity());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{userId}/items/{cartItemId}")
-    public ResponseEntity<?>  deleteItemFromCart(@PathVariable UUID userId,
-                                                 @PathVariable UUID cartItemId,
+    @DeleteMapping("/items/{cartItemId}")
+    public ResponseEntity<?>  deleteItemFromCart(@PathVariable UUID cartItemId,
                                                  Authentication authentication){
-        validateUserAccess(userId, authentication);
+        UUID userId = currentUserId(authentication);
         cartService.removeItemFromCart(userId, cartItemId);
         return new ResponseEntity<>("Item removed from the cart successfully!",HttpStatus.OK);
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<CartResponseDTO> clearCart(@PathVariable UUID userId,
-                                                     Authentication authentication) {
-        validateUserAccess(userId, authentication);
+    @DeleteMapping
+    public ResponseEntity<CartResponseDTO> clearCart(Authentication authentication) {
+        UUID userId = currentUserId(authentication);
         CartResponseDTO response = cartService.clearCart(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -93,17 +88,15 @@ public class CartController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    private void validateUserAccess(UUID userId, Authentication authentication) {
+    private UUID currentUserId(Authentication authentication) {
+        return currentUser(authentication).userId();
+    }
+
+    private JwtAuthenticatedUser currentUser(Authentication authentication) {
         if (authentication == null || !(authentication.getPrincipal() instanceof JwtAuthenticatedUser jwtUser)) {
             throw new AccessDeniedException("Authentication is required to access the cart.");
         }
-
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
-
-        if (!isAdmin && !userId.equals(jwtUser.userId())) {
-            throw new AccessDeniedException("You are not allowed to access another user's cart.");
-        }
+        return jwtUser;
     }
 
 }

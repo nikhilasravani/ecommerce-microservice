@@ -15,6 +15,8 @@ import org.json.JSONObject;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -53,7 +55,7 @@ public class PaymentServiceImplementation implements PaymentService {
         }
 
         Payment savedPayment = paymentRepository.save(payment);
-        paymentResultProducer.publish(new PaymentResultEvent(
+        publishPaymentResultAfterCommit(new PaymentResultEvent(
                 savedPayment.getOrderId(),
                 savedPayment.getUserId(),
                 savedPayment.getPaymentStatus(),
@@ -124,5 +126,19 @@ public class PaymentServiceImplementation implements PaymentService {
         return payments.stream()
                 .map(payment-> modelMapper.map(payment, PaymentResponseDTO.class))
                 .toList();
+    }
+
+    private void publishPaymentResultAfterCommit(PaymentResultEvent event) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            paymentResultProducer.publish(event);
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                paymentResultProducer.publish(event);
+            }
+        });
     }
 }

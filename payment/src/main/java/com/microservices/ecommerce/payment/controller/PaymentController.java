@@ -40,7 +40,7 @@ public class PaymentController {
         return new ResponseEntity<>(paymentResponseDTO, HttpStatus.OK);
     }
 
-    @GetMapping("/histor")
+    @GetMapping("/history")
     public ResponseEntity<List<PaymentResponseDTO>> getAllPayments(){
         List<PaymentResponseDTO> paymentResponseDTO = paymentService.getAllPayments();
         return new ResponseEntity<>(paymentResponseDTO, HttpStatus.OK);

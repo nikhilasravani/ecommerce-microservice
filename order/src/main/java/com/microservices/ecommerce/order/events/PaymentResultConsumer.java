@@ -7,6 +7,7 @@ import com.microservices.ecommerce.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class PaymentResultConsumer {
             topics = "${kafka.topic.payment-result}",
             groupId = "${spring.kafka.consumer.group-id}"
     )
+    @Transactional
     public void consumePaymentResult(PaymentResultEvent event) {
         Order order = orderRepository.findById(event.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found for id: " + event.getOrderId()));

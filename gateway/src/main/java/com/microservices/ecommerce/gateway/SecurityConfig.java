@@ -30,6 +30,12 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST,"/products/**").hasAuthority("ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.PUT,"/products/**").hasAuthority("ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.DELETE,"/products/**").hasAuthority("ROLE_ADMIN")
+                                .requestMatchers(HttpMethod.POST,"/orders/**").authenticated()
+                                .requestMatchers(HttpMethod.GET,"/orders/**").authenticated()
+                                .requestMatchers(HttpMethod.POST,"/payment/initiate").authenticated()
+                                .requestMatchers(HttpMethod.GET,"/payment/order/**").authenticated()
+                                .requestMatchers(HttpMethod.GET,"/payment/user/**").authenticated()
+                                .requestMatchers(HttpMethod.GET,"/payment/history").hasAuthority("ROLE_ADMIN")
                                 .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

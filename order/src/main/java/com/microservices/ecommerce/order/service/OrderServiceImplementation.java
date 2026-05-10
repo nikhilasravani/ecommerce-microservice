@@ -14,6 +14,9 @@ import com.microservices.ecommerce.order.repository.OrderRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,6 +50,7 @@ public class OrderServiceImplementation implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderResponseDTO placeOrder(UUID userId) throws Exception{
         //Step 1: Get cart items using feign client
         CartResponseDTO cartResponseDTO = cartFeignClient.getCartByUserId(userId, cartInternalToken);
@@ -107,7 +111,7 @@ public class OrderServiceImplementation implements OrderService {
                 savedOrder.getUserId(),
                 savedOrder.getTotalAmount()
         );
-        orderEventProducer.publishOrderPlacedEvent(event);
+        publishOrderPlacedEventAfterCommit(event);
 
 
         //Step:10 Return response
@@ -120,5 +124,19 @@ public class OrderServiceImplementation implements OrderService {
         return orders.stream()
                 .map(order->modelMapper.map(order, OrderResponseDTO.class))
                 .toList();
+    }
+
+    private void publishOrderPlacedEventAfterCommit(OrderPlacedEvent event) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            orderEventProducer.publishOrderPlacedEvent(event);
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                orderEventProducer.publishOrderPlacedEvent(event);
+            }
+        });
     }
 }

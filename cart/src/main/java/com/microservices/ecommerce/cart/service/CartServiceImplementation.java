@@ -16,6 +16,7 @@ import com.microservices.ecommerce.cart.repository.CartRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.modelmapper.ModelMapper;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -66,7 +67,15 @@ public class CartServiceImplementation implements  CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO addItemToCart(UUID userId, CartItemRequestDTO request) {
+        if (request == null || request.getProductId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product id is required.");
+        }
+        if (request.getQuantity() == null || request.getQuantity() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be greater than zero.");
+        }
+
         //Step 1 : Validate user exists via FeignClient
         UserResponseDTO user = userFeignClient.getUserById(userId, userInternalToken);
         if(user == null){
@@ -81,7 +90,6 @@ public class CartServiceImplementation implements  CartService {
                     return cartRepository.save(newCart);
                 });
 
-        ProductResponseDTO product = productFeignClient.getProductById(request.getProductId());
         //step 3 : check if product already exists in cart
         Optional<CartItem> existingItem = cart.getItems().stream()
                 .filter(item-> item.getProductId().equals(request.getProductId()))
@@ -94,6 +102,11 @@ public class CartServiceImplementation implements  CartService {
             cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
         }
         else {
+            ProductResponseDTO product = productFeignClient.getProductById(request.getProductId());
+            if (product == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found.");
+            }
+
             //new product - create fresh CartItem
             CartItem cartItem = new CartItem();
             cartItem.setProductId(product.getProductId());
@@ -110,6 +123,7 @@ public class CartServiceImplementation implements  CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO updateQuantityOfCartItem(UUID userId, UUID cartItemId, Integer quantity) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new CartNotFoundException("Cart not found"));
@@ -131,6 +145,7 @@ public class CartServiceImplementation implements  CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO removeItemFromCart(UUID userId, UUID cartItemId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new CartNotFoundException("Cart not found"));
@@ -147,6 +162,7 @@ public class CartServiceImplementation implements  CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO clearCart(UUID userId) {
         //Step 1 : Validate user exists via FeignClient
         UserResponseDTO user = userFeignClient.getUserById(userId, userInternalToken);
