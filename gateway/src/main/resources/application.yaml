@@ -88,13 +88,13 @@ spring:
             - id: order-service-place-order
               uri: lb://order
               predicates:
-                - Path=/users/**
+                - Path=/orders/**
                 - Method=POST
 
             - id: order-service-get-orders
               uri: lb://order
               predicates:
-                - Path=/users/**
+                - Path=/orders/**
                 - Method=GET
 
             - id: payment-service-initiate

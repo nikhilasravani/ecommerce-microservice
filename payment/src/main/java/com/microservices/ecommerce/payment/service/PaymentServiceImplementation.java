@@ -35,6 +35,11 @@ public class PaymentServiceImplementation implements PaymentService {
     @Override
     @Transactional
     public PaymentResponseDTO intiatePayment(PaymentRequestDTO paymentRequestDTO) {
+        Payment existingPayment = paymentRepository.findTopByOrderIdOrderByCreatedAtDesc(paymentRequestDTO.getOrderId())
+                .orElse(null);
+        if (existingPayment != null) {
+            return modelMapper.map(existingPayment, PaymentResponseDTO.class);
+        }
 
         Payment payment = new Payment();
         payment.setOrderId(paymentRequestDTO.getOrderId());
@@ -105,7 +110,7 @@ public class PaymentServiceImplementation implements PaymentService {
     @Override
     public PaymentResponseDTO getPaymentByOrderId(UUID orderId) {
 
-        Payment payment = paymentRepository.findByOrderId(orderId).
+        Payment payment = paymentRepository.findTopByOrderIdOrderByCreatedAtDesc(orderId).
                 orElseThrow(()-> new RuntimeException("Payment not found for Order Id : "+orderId));
 
         return modelMapper.map(payment,PaymentResponseDTO.class);

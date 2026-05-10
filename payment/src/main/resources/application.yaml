@@ -39,3 +39,10 @@ razorpay:
   key-id: rzp_test_SlBG1ltDyco4We
   key-secret: GtVvz9Kte4bGA2m7ybR88hL2
 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
