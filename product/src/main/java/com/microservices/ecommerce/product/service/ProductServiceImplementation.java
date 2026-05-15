@@ -8,6 +8,9 @@ import com.microservices.ecommerce.product.exception.ProductNotFoundException;
 import com.microservices.ecommerce.product.model.Product;
 import com.microservices.ecommerce.product.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +49,7 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "products", key="#productId")
     public ProductResponseDTO findProductById(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with ID : " + productId));
@@ -53,6 +57,7 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
+    @CachePut(value = "products", key="#productId")
     public ProductResponseDTO updateProduct(UUID productId, ProductRequestDTO productRequestDTO) {
         validateProductRequest(productRequestDTO);
 
@@ -93,6 +98,7 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", key="#productId")
     public void deleteProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with ID : " + productId));
